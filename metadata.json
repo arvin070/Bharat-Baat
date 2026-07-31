@@ -1,0 +1,6 @@
+{
+  "name": "Bharat Baat",
+  "description": "A high-contrast cyber-noir messaging platform with real-time AI conversations, media sharing, and video calling.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
