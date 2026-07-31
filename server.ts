@@ -77,23 +77,37 @@ app.post("/api/chat", async (req, res) => {
     const systemInstruction =
       PERSONA_INSTRUCTIONS[persona] || PERSONA_INSTRUCTIONS["Bharat AI Assistant"];
 
-    // Format chat history for Gemini contents
+    // Format chat history for Gemini contents and ensure strict alternation
     const contents: any[] = [];
     if (history && Array.isArray(history)) {
+      let lastRole: string | null = null;
       for (const msg of history.slice(-6)) {
+        const role = msg.sender === "user" ? "user" : "model";
+        if (role === lastRole) {
+          if (contents.length > 0) {
+            contents[contents.length - 1].parts[0].text += "\n" + msg.text;
+          }
+          continue;
+        }
         contents.push({
-          role: msg.sender === "user" ? "user" : "model",
+          role,
           parts: [{ text: msg.text }],
         });
+        lastRole = role;
       }
     }
-    contents.push({
-      role: "user",
-      parts: [{ text: message }],
-    });
+
+    if (contents.length > 0 && contents[contents.length - 1].role === "user") {
+      contents[contents.length - 1].parts[0].text += "\n" + message;
+    } else {
+      contents.push({
+        role: "user",
+        parts: [{ text: message }],
+      });
+    }
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
+      model: "gemini-2.5-flash",
       contents,
       config: {
         systemInstruction,
@@ -119,7 +133,7 @@ app.post("/api/tts", async (req, res) => {
     }
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-tts-preview",
+      model: "gemini-2.5-flash",
       contents: [{ parts: [{ text }] }],
       config: {
         responseModalities: ["AUDIO"],
